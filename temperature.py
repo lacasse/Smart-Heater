@@ -6,6 +6,7 @@ from rpi_rf import RFDevice
 
 ds18b20 = ""
 
+
 def setup():
     # Reset switch
     off()
@@ -32,28 +33,30 @@ def read():
 def loop():
     state = 0
     while True:
+        output()
         if time.localtime().tm_hour == 6:
-            output()
             if time.localtime().tm_min == 59:
                 off()
                 state = 0
-            elif read() <= 24 and state == 0:
+            elif read() <= 25 and state == 0:
                 on()
                 state = 1
-            elif read() > 24 and state == 1:
+            elif read() > 25 and state == 1:
                 off()
                 state = 0
 
             time.sleep(60)
 
         else:
-            output()
-            time.sleep(1200)
+            time.sleep(1800)
 
 
 def output():
     # Will later be used to report info to a log file and a csv to eventually graph the ambient temperature
-    print(datetime.datetime.now().time()," Current temperature : %0.3f C" % read())
+    print(
+        datetime.datetime.now().strftime("%H:%M:%S"),
+        "Current temperature : %0.3f C" % read(),
+    )
 
 
 def on():
@@ -65,18 +68,19 @@ def on():
     rfdevice.tx_code(17061272, 3, 83)
     rfdevice.tx_code(4265267, 1, 190)
     rfdevice.cleanup()
-    print(datetime.datetime.now().time()," Electric heater turned on.")
+    print(datetime.datetime.now().strftime("%H:%M:%S"), "Electric heater turned on.")
 
 
 def off():
     rfdevice = RFDevice(17)
     rfdevice.tx_repeat = 1
     rfdevice.enable_tx()
-    rfdevice.tx_code(8530555, 1, 190)
+    rfdevice.tx_code(4265276, 1, 188)
+    rfdevice.tx_code(4265276, 1, 191)
     rfdevice.tx_code(4265276, 1, 191)
     rfdevice.tx_code(4265276, 1, 191)
     rfdevice.cleanup()
-    print(datetime.datetime.now().strftime("%H"),datetime.datetime.now().strftime("%M "),"Electric heater turned off.")
+    print(datetime.datetime.now().strftime("%H:%M:%S"), "Electric heater turned off.")
 
 
 def destroy():
